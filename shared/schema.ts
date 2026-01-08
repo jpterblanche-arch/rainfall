@@ -6,14 +6,14 @@ import { z } from "zod";
 export const rainfallRecords = pgTable("rainfall_records", {
   id: varchar("id").primaryKey(),
   date: date("date").notNull(),
-  amount: integer("amount").notNull(), // rainfall in mm
+  amount: text("amount").notNull(), // rainfall in mm (stored as string for precision/flexibility)
 });
 
 export const insertRainfallSchema = createInsertSchema(rainfallRecords).omit({
   id: true,
 }).extend({
   date: z.string().min(1, "Date is required"),
-  amount: z.number().min(0, "Amount must be 0 or greater").max(500, "Amount seems too high"),
+  amount: z.string().regex(/^\d+([.,]\d+)?$/, "Enter a valid amount (e.g., 4.5 or 4,5)"),
 });
 
 export type InsertRainfall = z.infer<typeof insertRainfallSchema>;

@@ -34,7 +34,7 @@ export default function Home() {
     resolver: zodResolver(insertRainfallSchema),
     defaultValues: {
       date: format(new Date(), "yyyy-MM-dd"),
-      amount: 0,
+      amount: "0",
     },
   });
 
@@ -146,12 +146,10 @@ export default function Home() {
                       <FormLabel>Rainfall (mm)</FormLabel>
                       <FormControl>
                         <Input
-                          type="number"
-                          min="0"
-                          step="1"
-                          placeholder="0"
+                          type="text"
+                          inputMode="decimal"
+                          placeholder="0,0"
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
                           data-testid="input-amount"
                         />
                       </FormControl>

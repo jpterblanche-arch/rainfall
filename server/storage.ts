@@ -39,12 +39,12 @@ export class MemStorage implements IStorage {
           const dateObj = parse(datePart, 'ddMMM-yy', new Date());
           const amount = parseFloat(mmStr.replace(',', '.'));
           
-          if (!isNaN(dateObj.getTime()) && !isNaN(amount)) {
+          if (!isNaN(dateObj.getTime()) && mmStr) {
             const id = randomUUID();
             this.rainfallRecords.set(id, {
               id,
               date: dateObj.toISOString().split('T')[0],
-              amount: Math.round(amount)
+              amount: mmStr.trim().replace(',', '.')
             });
           }
         } catch (e) {
@@ -65,7 +65,7 @@ export class MemStorage implements IStorage {
     const record: RainfallRecord = {
       id,
       date: insert.date,
-      amount: insert.amount,
+      amount: insert.amount.replace(',', '.'),
     };
     this.rainfallRecords.set(id, record);
     return record;
@@ -81,11 +81,13 @@ export class MemStorage implements IStorage {
       const year = date.getFullYear();
       const key = `${year}-${month}`;
 
+      const amount = parseFloat(record.amount);
+
       if (totalsMap.has(key)) {
         const existing = totalsMap.get(key)!;
-        existing.total += record.amount;
+        existing.total += amount;
       } else {
-        totalsMap.set(key, { month, year, total: record.amount });
+        totalsMap.set(key, { month, year, total: amount });
       }
     }
 
@@ -96,6 +98,7 @@ export class MemStorage implements IStorage {
 
     return Array.from(totalsMap.values()).map((item) => ({
       ...item,
+      total: parseFloat(item.total.toFixed(1)),
       label: `${monthNames[item.month]} ${item.year}`,
     }));
   }
