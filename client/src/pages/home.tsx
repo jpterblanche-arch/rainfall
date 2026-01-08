@@ -3,7 +3,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { CloudRain, Plus, Droplets, Calendar } from "lucide-react";
+import { CloudRain, Plus, Droplets, Calendar, BarChart3 } from "lucide-react";
+import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,11 +99,19 @@ export default function Home() {
       <div className="max-w-4xl mx-auto px-4 py-8 md:py-16">
         {/* Header */}
         <header className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <CloudRain className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-semibold" data-testid="text-page-title">
-              Rainfall Tracker
-            </h1>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <CloudRain className="h-8 w-8 text-primary" />
+              <h1 className="text-2xl font-semibold" data-testid="text-page-title">
+                Rainfall Tracker
+              </h1>
+            </div>
+            <Link href="/charts">
+              <Button variant="outline" size="sm" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                View Charts
+              </Button>
+            </Link>
           </div>
           <p className="text-muted-foreground text-sm">
             Record daily rainfall and view monthly totals
