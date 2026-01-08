@@ -1,5 +1,8 @@
 import { type RainfallRecord, type InsertRainfall, type MonthlyTotal } from "@shared/schema";
 import { randomUUID } from "crypto";
+import fs from 'fs';
+import { parse } from 'date-fns';
+import path from 'path';
 
 export interface IStorage {
   getAllRainfall(): Promise<RainfallRecord[]>;
@@ -12,6 +15,45 @@ export class MemStorage implements IStorage {
 
   constructor() {
     this.rainfallRecords = new Map();
+    this.importHistoricalData();
+  }
+
+  private async importHistoricalData() {
+    try {
+      const csvPath = path.resolve(process.cwd(), 'attached_assets/reen_1767879189141.csv');
+      if (!fs.existsSync(csvPath)) return;
+
+      const csvData = fs.readFileSync(csvPath, 'utf-8');
+      const lines = csvData.split('\n');
+      
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        const [dateStr, mmStr] = line.split(';');
+        if (!dateStr || !mmStr) continue;
+
+        const datePart = dateStr.split(' ').slice(1).join(' '); 
+        
+        try {
+          const dateObj = parse(datePart, 'ddMMM-yy', new Date());
+          const amount = parseFloat(mmStr.replace(',', '.'));
+          
+          if (!isNaN(dateObj.getTime()) && !isNaN(amount)) {
+            const id = randomUUID();
+            this.rainfallRecords.set(id, {
+              id,
+              date: dateObj.toISOString().split('T')[0],
+              amount: Math.round(amount)
+            });
+          }
+        } catch (e) {
+          // Silent catch for parsing individual lines
+        }
+      }
+    } catch (error) {
+      console.error('Initial import failed:', error);
+    }
   }
 
   async getAllRainfall(): Promise<RainfallRecord[]> {
