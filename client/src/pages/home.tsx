@@ -46,6 +46,7 @@ export default function Home() {
   // Fetch monthly totals
   const { data: monthlyTotals = [], isLoading: totalsLoading } = useQuery<MonthlyTotal[]>({
     queryKey: ["/api/rainfall/monthly"],
+    staleTime: 0, // Ensure we get fresh data
   });
 
   // Mutation to add a new record
