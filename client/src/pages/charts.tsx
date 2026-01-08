@@ -63,6 +63,10 @@ export default function Charts() {
     });
   }, [monthlyTotals, selectedYear]);
 
+  const yearlyTotal = useMemo(() => {
+    return chartData.reduce((sum, item) => sum + item.total, 0);
+  }, [chartData]);
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 py-8 md:py-16">
@@ -75,9 +79,20 @@ export default function Charts() {
               </Button>
             </Link>
           </div>
-          <div className="flex items-center gap-3 mb-2">
-            <BarChart3 className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-semibold">Rainfall Statistics</h1>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <BarChart3 className="h-8 w-8 text-primary" />
+              <h1 className="text-2xl font-semibold">Rainfall Statistics</h1>
+            </div>
+            {selectedYear && !isLoading && (
+              <div className="flex flex-col items-end">
+                <span className="text-sm text-muted-foreground uppercase tracking-wider font-medium">Yearly Total</span>
+                <span className="text-3xl font-bold font-mono text-primary">
+                  {yearlyTotal.toFixed(1)}
+                  <span className="text-lg font-normal text-muted-foreground ml-1">mm</span>
+                </span>
+              </div>
+            )}
           </div>
           <p className="text-muted-foreground text-sm">
             Visual analysis of monthly rainfall patterns
