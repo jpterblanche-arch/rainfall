@@ -1,18 +1,28 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+// Rainfall record table
+export const rainfallRecords = pgTable("rainfall_records", {
+  id: varchar("id").primaryKey(),
+  date: date("date").notNull(),
+  amount: integer("amount").notNull(), // rainfall in mm
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const insertRainfallSchema = createInsertSchema(rainfallRecords).omit({
+  id: true,
+}).extend({
+  date: z.string().min(1, "Date is required"),
+  amount: z.number().min(0, "Amount must be 0 or greater").max(500, "Amount seems too high"),
 });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export type InsertRainfall = z.infer<typeof insertRainfallSchema>;
+export type RainfallRecord = typeof rainfallRecords.$inferSelect;
+
+// Monthly total type for frontend
+export type MonthlyTotal = {
+  month: number;
+  year: number;
+  total: number;
+  label: string;
+};

@@ -1,37 +1,61 @@
-import { type User, type InsertUser } from "@shared/schema";
+import { type RainfallRecord, type InsertRainfall, type MonthlyTotal } from "@shared/schema";
 import { randomUUID } from "crypto";
 
-// modify the interface with any CRUD methods
-// you might need
-
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  getAllRainfall(): Promise<RainfallRecord[]>;
+  addRainfall(record: InsertRainfall): Promise<RainfallRecord>;
+  getMonthlyTotals(): Promise<MonthlyTotal[]>;
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<string, User>;
+  private rainfallRecords: Map<string, RainfallRecord>;
 
   constructor() {
-    this.users = new Map();
+    this.rainfallRecords = new Map();
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async getAllRainfall(): Promise<RainfallRecord[]> {
+    return Array.from(this.rainfallRecords.values());
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async addRainfall(insert: InsertRainfall): Promise<RainfallRecord> {
     const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+    const record: RainfallRecord = {
+      id,
+      date: insert.date,
+      amount: insert.amount,
+    };
+    this.rainfallRecords.set(id, record);
+    return record;
+  }
+
+  async getMonthlyTotals(): Promise<MonthlyTotal[]> {
+    const records = Array.from(this.rainfallRecords.values());
+    const totalsMap = new Map<string, { month: number; year: number; total: number }>();
+
+    for (const record of records) {
+      const date = new Date(record.date);
+      const month = date.getMonth();
+      const year = date.getFullYear();
+      const key = `${year}-${month}`;
+
+      if (totalsMap.has(key)) {
+        const existing = totalsMap.get(key)!;
+        existing.total += record.amount;
+      } else {
+        totalsMap.set(key, { month, year, total: record.amount });
+      }
+    }
+
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    return Array.from(totalsMap.values()).map((item) => ({
+      ...item,
+      label: `${monthNames[item.month]} ${item.year}`,
+    }));
   }
 }
 
