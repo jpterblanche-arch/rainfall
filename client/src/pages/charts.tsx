@@ -9,7 +9,8 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  Cell
+  Cell,
+  LabelList
 } from "recharts";
 import { CloudRain, BarChart3, ChevronLeft, Calendar as CalendarIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -150,6 +151,13 @@ export default function Charts() {
                       dataKey="total" 
                       radius={[4, 4, 0, 0]}
                     >
+                      <LabelList 
+                        dataKey="total" 
+                        position="top" 
+                        offset={10} 
+                        formatter={(value: number) => value > 0 ? `${value}` : ""}
+                        style={{ fill: 'hsl(var(--foreground))', fontSize: 12, fontWeight: 500, fontFamily: 'var(--font-mono)' }}
+                      />
                       {chartData.map((entry, index) => (
                         <Cell 
                           key={`cell-${index}`} 
