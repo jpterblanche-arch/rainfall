@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -48,6 +48,15 @@ import { insertRainfallSchema, type RainfallRecord, type MonthlyTotal, type Inse
 export default function Home() {
   const { toast } = useToast();
   
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const form = useForm<InsertRainfall>({
     resolver: zodResolver(insertRainfallSchema),
     defaultValues: {
@@ -322,16 +331,16 @@ export default function Home() {
                             dataKey="total" 
                             fill="hsl(var(--primary))" 
                             radius={[4, 4, 0, 0]}
-                            barSize={40}
+                            barSize={isMobile ? 30 : 40}
                           >
                             <LabelList 
                               dataKey="total" 
-                              position="top" 
-                              offset={10}
+                              position={isMobile ? "center" : "top"}
+                              offset={isMobile ? 0 : 10}
                               formatter={(value: number) => formatNumber(value)}
                               style={{ 
-                                fill: 'hsl(var(--foreground))', 
-                                fontSize: '11px', 
+                                fill: isMobile ? 'white' : 'hsl(var(--foreground))', 
+                                fontSize: isMobile ? '9px' : '11px', 
                                 fontWeight: 'bold',
                                 whiteSpace: 'nowrap'
                               }}
