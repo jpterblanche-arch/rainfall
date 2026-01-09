@@ -33,9 +33,10 @@ export class MemStorage implements IStorage {
         const [dateStr, mmStr] = line.split(';');
         if (!dateStr || !mmStr) continue;
 
-        const datePart = dateStr.split(' ').slice(1).join(' '); 
+        const datePart = dateStr.includes(' ') ? dateStr.split(' ').slice(1).join(' ') : dateStr; 
         
         try {
+          // Format is Monday 29Sept-25 -> parse 29Sept-25
           const dateObj = parse(datePart, 'ddMMM-yy', new Date());
           const amount = parseFloat(mmStr.replace(',', '.'));
           
@@ -48,9 +49,10 @@ export class MemStorage implements IStorage {
             });
           }
         } catch (e) {
-          // Silent catch for parsing individual lines
+          console.error(`Error parsing line ${i}: ${line}`, e);
         }
       }
+      console.log(`Imported ${this.rainfallRecords.size} records from CSV.`);
     } catch (error) {
       console.error('Initial import failed:', error);
     }
