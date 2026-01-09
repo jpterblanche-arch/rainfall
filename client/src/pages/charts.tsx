@@ -164,7 +164,7 @@ export default function Charts() {
                   <div className="h-full w-full bg-muted animate-pulse rounded" />
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={ytdComparisonData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                    <BarChart data={ytdComparisonData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                       <XAxis 
                         dataKey="month" 
@@ -178,6 +178,7 @@ export default function Charts() {
                         tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
                       />
                       <Tooltip 
+                        cursor={{ fill: 'hsl(var(--accent))', opacity: 0.4 }}
                         contentStyle={{ 
                           borderRadius: '8px', 
                           border: 'none', 
@@ -186,23 +187,20 @@ export default function Charts() {
                         formatter={(value: number) => [`${formatNumber(value)} mm`, ""]}
                       />
                       <Legend verticalAlign="top" height={36}/>
-                      <Line 
-                        type="monotone" 
+                      <Bar 
                         dataKey={new Date().getFullYear().toString()} 
-                        stroke="hsl(var(--primary))" 
-                        strokeWidth={3}
-                        dot={{ r: 4, fill: "hsl(var(--primary))" }}
-                        activeDot={{ r: 6 }}
+                        fill="hsl(var(--primary))" 
+                        radius={[4, 4, 0, 0]}
+                        barSize={30}
                       />
-                      <Line 
-                        type="monotone" 
+                      <Bar 
                         dataKey={(new Date().getFullYear() - 1).toString()} 
-                        stroke="hsl(var(--muted-foreground))" 
-                        strokeWidth={2}
-                        strokeDasharray="5 5"
-                        dot={{ r: 4, fill: "hsl(var(--muted-foreground))" }}
+                        fill="hsl(var(--muted-foreground))" 
+                        radius={[4, 4, 0, 0]}
+                        barSize={30}
+                        opacity={0.6}
                       />
-                    </LineChart>
+                    </BarChart>
                   </ResponsiveContainer>
                 )}
               </div>
