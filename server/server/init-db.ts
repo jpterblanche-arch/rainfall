@@ -16,5 +16,6 @@ import { pool } from "./db";
     process.exit(1);
   }
 })();
+Add init-db.ts to create rainfall table
 
 
