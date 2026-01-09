@@ -329,7 +329,12 @@ export default function Home() {
                               position="top" 
                               offset={10}
                               formatter={(value: number) => formatNumber(value)}
-                              style={{ fill: 'hsl(var(--foreground))', fontSize: '11px', fontWeight: 'bold' }}
+                              style={{ 
+                                fill: 'hsl(var(--foreground))', 
+                                fontSize: '11px', 
+                                fontWeight: 'bold',
+                                whiteSpace: 'nowrap'
+                              }}
                             />
                             {yearlyTotalsData.map((entry, index) => (
                               <Cell 
