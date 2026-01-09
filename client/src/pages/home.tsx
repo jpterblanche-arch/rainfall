@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { CloudRain, Plus, Droplets, Calendar, BarChart3 } from "lucide-react";
+import { CloudRain, Plus, Droplets, Calendar, BarChart3, TrendingUp } from "lucide-react";
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,17 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  LabelList,
+  Cell,
+} from "recharts";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { insertRainfallSchema, type RainfallRecord, type MonthlyTotal, type InsertRainfall } from "@shared/schema";
@@ -97,6 +108,20 @@ export default function Home() {
     return b.month - a.month;
   });
 
+  // Calculate yearly totals
+  const yearlyTotalsMap = new Map<number, number>();
+  monthlyTotals.forEach((total) => {
+    const current = yearlyTotalsMap.get(total.year) || 0;
+    yearlyTotalsMap.set(total.year, current + total.total);
+  });
+
+  const yearlyTotalsData = Array.from(yearlyTotalsMap.entries())
+    .map(([year, total]) => ({
+      year,
+      total: parseFloat(total.toFixed(1)),
+    }))
+    .sort((a, b) => a.year - b.year);
+
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
 
@@ -115,7 +140,7 @@ export default function Home() {
             <Link href="/charts">
               <Button variant="outline" size="sm" className="gap-2">
                 <BarChart3 className="h-4 w-4" />
-                View Charts
+                Detailed Charts
               </Button>
             </Link>
           </div>
@@ -187,10 +212,14 @@ export default function Home() {
         </Card>
 
         <Tabs defaultValue="monthly" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
+          <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="monthly" className="flex items-center gap-2">
               <Droplets className="h-4 w-4" />
-              Monthly Totals
+              Monthly
+            </TabsTrigger>
+            <TabsTrigger value="yearly" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Yearly Summary
             </TabsTrigger>
             <TabsTrigger value="all" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
@@ -244,6 +273,68 @@ export default function Home() {
                   })}
                 </div>
               )}
+            </section>
+          </TabsContent>
+
+          <TabsContent value="yearly">
+            <section className="animate-in fade-in duration-300">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg font-medium">Yearly Rainfall Totals</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="h-[400px] w-full">
+                    {totalsLoading ? (
+                      <div className="h-full w-full bg-muted animate-pulse rounded" />
+                    ) : yearlyTotalsData.length === 0 ? (
+                      <div className="h-full flex items-center justify-center text-muted-foreground">
+                        No data available for yearly summary.
+                      </div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={yearlyTotalsData} margin={{ top: 30, right: 10, left: 10, bottom: 20 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                          <XAxis 
+                            dataKey="year" 
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fontSize: 12 }}
+                            dy={10}
+                          />
+                          <YAxis hide />
+                          <Tooltip 
+                            cursor={{ fill: 'var(--muted)', opacity: 0.4 }}
+                            contentStyle={{ 
+                              borderRadius: '8px', 
+                              border: 'none', 
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
+                            }}
+                          />
+                          <Bar 
+                            dataKey="total" 
+                            fill="hsl(var(--primary))" 
+                            radius={[4, 4, 0, 0]}
+                            barSize={40}
+                          >
+                            <LabelList 
+                              dataKey="total" 
+                              position="top" 
+                              offset={10}
+                              style={{ fill: 'hsl(var(--foreground))', fontSize: '11px', fontWeight: 'bold' }}
+                            />
+                            {yearlyTotalsData.map((entry, index) => (
+                              <Cell 
+                                key={`cell-${index}`} 
+                                fill={entry.year === currentYear ? 'hsl(var(--primary))' : 'hsl(var(--primary) / 0.6)'} 
+                              />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </section>
           </TabsContent>
 
@@ -316,4 +407,5 @@ export default function Home() {
     </div>
   );
 }
+
 
