@@ -1,22 +1,20 @@
 import { pool } from "./db";
 
-async function initDb() {
+(async () => {
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS rainfall (
         id SERIAL PRIMARY KEY,
-        date DATE NOT NULL UNIQUE,
-        mm NUMERIC(5,1) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        date DATE NOT NULL,
+        rainfall_mm NUMERIC NOT NULL
       );
     `);
-
-    console.log("✅ Rainfall table ready");
+    console.log("Rainfall table ready ✅");
+    process.exit(0);
   } catch (err) {
-    console.error("❌ Database init failed", err);
+    console.error("Error initializing database:", err);
     process.exit(1);
   }
-}
+})();
 
-initDb();
 
