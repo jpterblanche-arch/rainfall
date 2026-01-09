@@ -287,11 +287,11 @@ export default function Home() {
           <TabsContent value="yearly">
             <section className="animate-in fade-in duration-300">
               <Card>
-                <CardHeader className="pb-2">
+                <CardHeader>
                   <CardTitle className="text-lg font-medium">Yearly Rainfall Totals</CardTitle>
                 </CardHeader>
-                <CardContent className="pt-2">
-                  <div className="h-[300px] md:h-[400px] landscape:h-[400px] w-full">
+                <CardContent className="pt-6">
+                  <div className="h-[400px] w-full">
                     {totalsLoading ? (
                       <div className="h-full w-full bg-muted animate-pulse rounded" />
                     ) : yearlyTotalsData.length === 0 ? (
@@ -300,53 +300,36 @@ export default function Home() {
                       </div>
                     ) : (
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={yearlyTotalsData} margin={{ top: 35, right: 10, left: -20, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                        <BarChart data={yearlyTotalsData} margin={{ top: 30, right: 10, left: 10, bottom: 20 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} />
                           <XAxis 
                             dataKey="year" 
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fontSize: 10 }}
-                            interval={yearlyTotalsData.length > 10 ? 1 : 0}
+                            tick={{ fontSize: 12 }}
                             dy={10}
                           />
-                          <YAxis 
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{ fontSize: 10 }}
-                            tickFormatter={(val) => val >= 1000 ? `${(val/1000).toFixed(1)}k` : val}
-                          />
+                          <YAxis hide />
                           <Tooltip 
                             cursor={{ fill: 'var(--muted)', opacity: 0.4 }}
                             contentStyle={{ 
                               borderRadius: '8px', 
                               border: 'none', 
-                              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                              fontSize: '12px'
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
                             }}
-                            formatter={(value: number) => [`${formatNumber(value)} mm`, "Total"]}
                           />
                           <Bar 
                             dataKey="total" 
                             fill="hsl(var(--primary))" 
                             radius={[4, 4, 0, 0]}
-                            barSize={yearlyTotalsData.length > 15 ? 15 : 25}
+                            barSize={40}
                           >
                             <LabelList 
                               dataKey="total" 
                               position="top" 
                               offset={10}
-                              formatter={(value: number) => {
-                                // Only show full number on desktop or landscape, or if not too many bars
-                                const isCompact = typeof window !== 'undefined' && window.innerWidth < 640 && window.innerHeight > window.innerWidth;
-                                if (isCompact && yearlyTotalsData.length > 8) return "";
-                                return formatNumber(value);
-                              }}
-                              style={{ 
-                                fill: 'hsl(var(--foreground))', 
-                                fontSize: '10px', 
-                                fontWeight: 'bold' 
-                              }}
+                              formatter={(value: number) => formatNumber(value)}
+                              style={{ fill: 'hsl(var(--foreground))', fontSize: '11px', fontWeight: 'bold' }}
                             />
                             {yearlyTotalsData.map((entry, index) => (
                               <Cell 
