@@ -10,9 +10,12 @@ import {
   Tooltip, 
   ResponsiveContainer,
   Cell,
-  LabelList
+  LabelList,
+  LineChart,
+  Line,
+  Legend
 } from "recharts";
-import { CloudRain, BarChart3, ChevronLeft, Calendar as CalendarIcon } from "lucide-react";
+import { CloudRain, BarChart3, ChevronLeft, Calendar as CalendarIcon, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -75,6 +78,37 @@ export default function Charts() {
     return parts.join(".");
   };
 
+  const ytdComparisonData = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const prevYear = currentYear - 1;
+    const currentMonth = new Date().getMonth();
+    
+    let currentCumulative = 0;
+    let prevCumulative = 0;
+    
+    return MONTHS.slice(0, currentMonth + 1).map((monthName, index) => {
+      const currentEntry = monthlyTotals.find(t => t.year === currentYear && t.month === index);
+      const prevEntry = monthlyTotals.find(t => t.year === prevYear && t.month === index);
+      
+      currentCumulative += currentEntry ? currentEntry.total : 0;
+      prevCumulative += prevEntry ? prevEntry.total : 0;
+      
+      return {
+        month: monthName.substring(0, 3),
+        [currentYear]: parseFloat(currentCumulative.toFixed(1)),
+        [prevYear]: parseFloat(prevCumulative.toFixed(1)),
+      };
+    });
+  }, [monthlyTotals]);
+
+  const ytdDifference = useMemo(() => {
+    if (ytdComparisonData.length === 0) return 0;
+    const lastPoint = ytdComparisonData[ytdComparisonData.length - 1];
+    const currentYear = new Date().getFullYear();
+    const prevYear = currentYear - 1;
+    return parseFloat((lastPoint[currentYear] - lastPoint[prevYear]).toFixed(1));
+  }, [ytdComparisonData]);
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 py-8 md:py-16">
@@ -107,97 +141,166 @@ export default function Charts() {
           </p>
         </header>
 
-        <Card className="mb-8">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
-            <div>
-              <CardTitle className="text-lg font-medium">Monthly Distribution</CardTitle>
-              <CardDescription>Rainfall totals by month for the selected year</CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-              <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="Select year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {years.map(year => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="h-[350px] flex items-center justify-center">
-                <div className="animate-pulse flex flex-col items-center gap-2">
-                  <div className="h-8 w-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
-                  <span className="text-sm text-muted-foreground">Loading chart data...</span>
+        <div className="grid grid-cols-1 gap-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
+              <div>
+                <CardTitle className="text-lg font-medium flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  Year-to-Date Comparison
+                </CardTitle>
+                <CardDescription>Cumulative rainfall: {new Date().getFullYear()} vs {new Date().getFullYear() - 1}</CardDescription>
+              </div>
+              <div className="flex flex-col items-end">
+                <span className="text-xs font-medium text-muted-foreground uppercase">YTD Difference</span>
+                <div className={`text-sm font-bold ${ytdDifference >= 0 ? 'text-blue-500' : 'text-orange-500'}`}>
+                  {ytdDifference >= 0 ? '+' : ''}{formatNumber(ytdDifference)} mm vs last year
                 </div>
               </div>
-            ) : chartData.length > 0 ? (
-              <div className="h-[350px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                    <XAxis 
-                      dataKey="name" 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                    />
-                    <YAxis 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                    />
-                    <Tooltip 
-                      cursor={{ fill: 'hsl(var(--accent))', opacity: 0.4 }}
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          return (
-                            <div className="bg-popover border border-popover-border p-3 rounded-lg shadow-md">
-                              <p className="text-sm font-medium mb-1">{payload[0].payload.fullName}</p>
-                              <p className="text-2xl font-bold text-primary font-mono">
-                                {formatNumber(payload[0].value as number)}
-                                <span className="text-sm font-normal text-muted-foreground ml-1">mm</span>
-                              </p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Bar 
-                      dataKey="total" 
-                      radius={[4, 4, 0, 0]}
-                    >
-                      <LabelList 
-                        dataKey="total" 
-                        position="top" 
-                        offset={10} 
-                        formatter={(value: number) => value > 0 ? formatNumber(value) : ""}
-                        style={{ fill: 'hsl(var(--foreground))', fontSize: 12, fontWeight: 500, fontFamily: 'var(--font-mono)' }}
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px] w-full">
+                {isLoading ? (
+                  <div className="h-full w-full bg-muted animate-pulse rounded" />
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={ytdComparisonData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                      <XAxis 
+                        dataKey="month" 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
                       />
-                      {chartData.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={entry.total > 0 ? 'hsl(var(--primary))' : 'hsl(var(--muted))'} 
+                      <YAxis 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          borderRadius: '8px', 
+                          border: 'none', 
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
+                        }}
+                        formatter={(value: number) => [`${formatNumber(value)} mm`, ""]}
+                      />
+                      <Legend verticalAlign="top" height={36}/>
+                      <Line 
+                        type="monotone" 
+                        dataKey={new Date().getFullYear().toString()} 
+                        stroke="hsl(var(--primary))" 
+                        strokeWidth={3}
+                        dot={{ r: 4, fill: "hsl(var(--primary))" }}
+                        activeDot={{ r: 6 }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey={(new Date().getFullYear() - 1).toString()} 
+                        stroke="hsl(var(--muted-foreground))" 
+                        strokeWidth={2}
+                        strokeDasharray="5 5"
+                        dot={{ r: 4, fill: "hsl(var(--muted-foreground))" }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
+              <div>
+                <CardTitle className="text-lg font-medium">Monthly Distribution</CardTitle>
+                <CardDescription>Rainfall totals by month for the selected year</CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                <Select value={selectedYear} onValueChange={setSelectedYear}>
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {years.map(year => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="h-[350px] flex items-center justify-center">
+                  <div className="animate-pulse flex flex-col items-center gap-2">
+                    <div className="h-8 w-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+                    <span className="text-sm text-muted-foreground">Loading chart data...</span>
+                  </div>
+                </div>
+              ) : chartData.length > 0 ? (
+                <div className="h-[350px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                      <XAxis 
+                        dataKey="name" 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                      />
+                      <YAxis 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                      />
+                      <Tooltip 
+                        cursor={{ fill: 'hsl(var(--accent))', opacity: 0.4 }}
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-popover border border-popover-border p-3 rounded-lg shadow-md">
+                                <p className="text-sm font-medium mb-1">{payload[0].payload.fullName}</p>
+                                <p className="text-2xl font-bold text-primary font-mono">
+                                  {formatNumber(payload[0].value as number)}
+                                  <span className="text-sm font-normal text-muted-foreground ml-1">mm</span>
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Bar 
+                        dataKey="total" 
+                        radius={[4, 4, 0, 0]}
+                      >
+                        <LabelList 
+                          dataKey="total" 
+                          position="top" 
+                          offset={10} 
+                          formatter={(value: number) => value > 0 ? formatNumber(value) : ""}
+                          style={{ fill: 'hsl(var(--foreground))', fontSize: 12, fontWeight: 500, fontFamily: 'var(--font-mono)' }}
                         />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="h-[350px] flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
-                No data available for the selected year
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                        {chartData.map((entry, index) => (
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={entry.total > 0 ? 'hsl(var(--primary))' : 'hsl(var(--muted))'} 
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="h-[350px] flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
+                  No data available for the selected year
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
