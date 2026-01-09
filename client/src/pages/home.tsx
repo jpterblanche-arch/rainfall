@@ -24,6 +24,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { insertRainfallSchema, type RainfallRecord, type MonthlyTotal, type InsertRainfall } from "@shared/schema";
@@ -60,7 +66,7 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ["/api/rainfall/monthly"] });
       form.reset({
         date: format(new Date(), "yyyy-MM-dd"),
-        amount: 0,
+        amount: "0",
       });
       toast({
         title: "Record saved",
@@ -180,126 +186,134 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        {/* Monthly Totals */}
-        <section className="mb-8">
-          <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
-            <Droplets className="h-5 w-5" />
-            Monthly Totals
-          </h2>
-          {totalsLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {[1, 2, 3, 4].map((i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardContent className="p-6">
-                    <div className="h-10 bg-muted rounded mb-2"></div>
-                    <div className="h-4 bg-muted rounded w-20"></div>
+        <Tabs defaultValue="monthly" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsTrigger value="monthly" className="flex items-center gap-2">
+              <Droplets className="h-4 w-4" />
+              Monthly Totals
+            </TabsTrigger>
+            <TabsTrigger value="all" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              All Records
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="monthly">
+            <section className="animate-in fade-in duration-300">
+              {totalsLoading ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {[1, 2, 3, 4].map((i) => (
+                    <Card key={i} className="animate-pulse">
+                      <CardContent className="p-6">
+                        <div className="h-10 bg-muted rounded mb-2"></div>
+                        <div className="h-4 bg-muted rounded w-20"></div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : sortedTotals.length === 0 ? (
+                <Card>
+                  <CardContent className="p-6 text-center text-muted-foreground">
+                    No rainfall data recorded yet. Add your first record above.
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-          ) : sortedTotals.length === 0 ? (
-            <Card>
-              <CardContent className="p-6 text-center text-muted-foreground">
-                No rainfall data recorded yet. Add your first record above.
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {sortedTotals.map((total) => {
-                const isCurrentMonth = total.month === currentMonth && total.year === currentYear;
-                return (
-                  <Card 
-                    key={`${total.year}-${total.month}`}
-                    className={isCurrentMonth ? "border-primary border-2" : ""}
-                    data-testid={`card-monthly-${total.year}-${total.month}`}
-                  >
-                    <CardContent className="p-6">
-                      <div className="text-3xl font-bold font-mono" data-testid={`text-total-${total.year}-${total.month}`}>
-                        {total.total}
-                        <span className="text-lg font-normal text-muted-foreground ml-1">mm</span>
-                      </div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {total.label}
-                        {isCurrentMonth && (
-                          <span className="ml-2 text-xs text-primary font-medium">Current</span>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        {/* Records Table */}
-        <section>
-          <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            All Records
-          </h2>
-          <Card>
-            <CardContent className="p-0">
-              {recordsLoading ? (
-                <div className="p-6">
-                  <div className="space-y-3">
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="h-12 bg-muted rounded animate-pulse"></div>
-                    ))}
-                  </div>
-                </div>
-              ) : sortedRecords.length === 0 ? (
-                <div className="p-6 text-center text-muted-foreground">
-                  No records yet. Start tracking rainfall above.
-                </div>
               ) : (
-                <>
-                  {/* Desktop Table */}
-                  <div className="hidden md:block">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Date</TableHead>
-                          <TableHead className="text-right">Rainfall (mm)</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {sortedRecords.map((record) => (
-                          <TableRow key={record.id} data-testid={`row-record-${record.id}`}>
-                            <TableCell>
-                              {format(new Date(record.date), "EEEE, MMMM d, yyyy")}
-                            </TableCell>
-                            <TableCell className="text-right font-mono">
-                              {record.amount}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                  {/* Mobile Cards */}
-                  <div className="md:hidden divide-y">
-                    {sortedRecords.map((record) => (
-                      <div 
-                        key={record.id} 
-                        className="p-4 flex justify-between items-center"
-                        data-testid={`card-record-${record.id}`}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {sortedTotals.map((total) => {
+                    const isCurrentMonth = total.month === currentMonth && total.year === currentYear;
+                    return (
+                      <Card 
+                        key={`${total.year}-${total.month}`}
+                        className={isCurrentMonth ? "border-primary border-2 shadow-sm" : "shadow-sm hover-elevate"}
+                        data-testid={`card-monthly-${total.year}-${total.month}`}
                       >
-                        <div className="text-sm">
-                          {format(new Date(record.date), "EEE, MMM d, yyyy")}
-                        </div>
-                        <div className="font-mono font-medium">
-                          {record.amount} mm
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
+                        <CardContent className="p-6">
+                          <div className="text-3xl font-bold font-mono" data-testid={`text-total-${total.year}-${total.month}`}>
+                            {total.total}
+                            <span className="text-lg font-normal text-muted-foreground ml-1">mm</span>
+                          </div>
+                          <div className="text-sm text-muted-foreground mt-1">
+                            {total.label}
+                            {isCurrentMonth && (
+                              <span className="ml-2 text-xs text-primary font-medium">Current</span>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
               )}
-            </CardContent>
-          </Card>
-        </section>
+            </section>
+          </TabsContent>
+
+          <TabsContent value="all">
+            <section className="animate-in fade-in duration-300">
+              <Card>
+                <CardContent className="p-0">
+                  {recordsLoading ? (
+                    <div className="p-6">
+                      <div className="space-y-3">
+                        {[1, 2, 3].map((i) => (
+                          <div key={i} className="h-12 bg-muted rounded animate-pulse"></div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : sortedRecords.length === 0 ? (
+                    <div className="p-6 text-center text-muted-foreground">
+                      No records yet. Start tracking rainfall above.
+                    </div>
+                  ) : (
+                    <>
+                      {/* Desktop Table */}
+                      <div className="hidden md:block">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Date</TableHead>
+                              <TableHead className="text-right">Rainfall (mm)</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {sortedRecords.map((record) => (
+                              <TableRow key={record.id} data-testid={`row-record-${record.id}`} className="hover:bg-muted/50 transition-colors">
+                                <TableCell>
+                                  {format(new Date(record.date), "EEEE, MMMM d, yyyy")}
+                                </TableCell>
+                                <TableCell className="text-right font-mono font-medium">
+                                  {record.amount}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                      {/* Mobile Cards */}
+                      <div className="md:hidden divide-y">
+                        {sortedRecords.map((record) => (
+                          <div 
+                            key={record.id} 
+                            className="p-4 flex justify-between items-center hover:bg-muted/50 transition-colors"
+                            data-testid={`card-record-${record.id}`}
+                          >
+                            <div className="text-sm">
+                              {format(new Date(record.date), "EEE, MMM d, yyyy")}
+                            </div>
+                            <div className="font-mono font-medium">
+                              {record.amount} mm
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </section>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
 }
+
