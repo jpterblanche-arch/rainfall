@@ -145,71 +145,6 @@ export default function Charts() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
               <div>
-                <CardTitle className="text-lg font-medium flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                  Year-to-Date Comparison
-                </CardTitle>
-                <CardDescription>Cumulative rainfall: {new Date().getFullYear()} vs {new Date().getFullYear() - 1}</CardDescription>
-              </div>
-              <div className="flex flex-col items-end">
-                <span className="text-xs font-medium text-muted-foreground uppercase">YTD Difference</span>
-                <div className={`text-sm font-bold ${ytdDifference >= 0 ? 'text-blue-500' : 'text-orange-500'}`}>
-                  {ytdDifference >= 0 ? '+' : ''}{formatNumber(ytdDifference)} mm vs last year
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px] w-full">
-                {isLoading ? (
-                  <div className="h-full w-full bg-muted animate-pulse rounded" />
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={ytdComparisonData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                      <XAxis 
-                        dataKey="month" 
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                      />
-                      <YAxis 
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                      />
-                      <Tooltip 
-                        cursor={{ fill: 'hsl(var(--accent))', opacity: 0.4 }}
-                        contentStyle={{ 
-                          borderRadius: '8px', 
-                          border: 'none', 
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
-                        }}
-                        formatter={(value: number) => [`${formatNumber(value)} mm`, ""]}
-                      />
-                      <Legend verticalAlign="top" height={36}/>
-                      <Bar 
-                        dataKey={new Date().getFullYear().toString()} 
-                        fill="hsl(var(--primary))" 
-                        radius={[4, 4, 0, 0]}
-                        barSize={30}
-                      />
-                      <Bar 
-                        dataKey={(new Date().getFullYear() - 1).toString()} 
-                        fill="hsl(var(--muted-foreground))" 
-                        radius={[4, 4, 0, 0]}
-                        barSize={30}
-                        opacity={0.6}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
-              <div>
                 <CardTitle className="text-lg font-medium">Monthly Distribution</CardTitle>
                 <CardDescription>Rainfall totals by month for the selected year</CardDescription>
               </div>
@@ -296,6 +231,71 @@ export default function Charts() {
                   No data available for the selected year
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
+              <div>
+                <CardTitle className="text-lg font-medium flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  Year-to-Date Comparison
+                </CardTitle>
+                <CardDescription>Cumulative rainfall: {new Date().getFullYear()} vs {new Date().getFullYear() - 1}</CardDescription>
+              </div>
+              <div className="flex flex-col items-end">
+                <span className="text-xs font-medium text-muted-foreground uppercase">YTD Difference</span>
+                <div className={`text-sm font-bold ${ytdDifference >= 0 ? 'text-blue-500' : 'text-orange-500'}`}>
+                  {ytdDifference >= 0 ? '+' : ''}{formatNumber(ytdDifference)} mm vs last year
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px] w-full">
+                {isLoading ? (
+                  <div className="h-full w-full bg-muted animate-pulse rounded" />
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={ytdComparisonData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                      <XAxis 
+                        dataKey="month" 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                      />
+                      <YAxis 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                      />
+                      <Tooltip 
+                        cursor={{ fill: 'hsl(var(--accent))', opacity: 0.4 }}
+                        contentStyle={{ 
+                          borderRadius: '8px', 
+                          border: 'none', 
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
+                        }}
+                        formatter={(value: number) => [`${formatNumber(value)} mm`, ""]}
+                      />
+                      <Legend verticalAlign="top" height={36}/>
+                      <Bar 
+                        dataKey={new Date().getFullYear().toString()} 
+                        fill="hsl(var(--primary))" 
+                        radius={[4, 4, 0, 0]}
+                        barSize={30}
+                      />
+                      <Bar 
+                        dataKey={(new Date().getFullYear() - 1).toString()} 
+                        fill="hsl(var(--muted-foreground))" 
+                        radius={[4, 4, 0, 0]}
+                        barSize={30}
+                        opacity={0.6}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
