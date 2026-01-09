@@ -122,6 +122,14 @@ export default function Home() {
     }))
     .sort((a, b) => a.year - b.year);
 
+  const formatNumber = (num: number | string) => {
+    const n = typeof num === "string" ? parseFloat(num) : num;
+    if (isNaN(n)) return num.toString();
+    const parts = n.toFixed(1).split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    return parts.join(".");
+  };
+
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
 
@@ -258,7 +266,7 @@ export default function Home() {
                       >
                         <CardContent className="p-6">
                           <div className="text-3xl font-bold font-mono" data-testid={`text-total-${total.year}-${total.month}`}>
-                            {total.total}
+                            {formatNumber(total.total)}
                             <span className="text-lg font-normal text-muted-foreground ml-1">mm</span>
                           </div>
                           <div className="text-sm text-muted-foreground mt-1">
@@ -320,6 +328,7 @@ export default function Home() {
                               dataKey="total" 
                               position="top" 
                               offset={10}
+                              formatter={(value: number) => formatNumber(value)}
                               style={{ fill: 'hsl(var(--foreground))', fontSize: '11px', fontWeight: 'bold' }}
                             />
                             {yearlyTotalsData.map((entry, index) => (
@@ -372,7 +381,7 @@ export default function Home() {
                                   {format(new Date(record.date), "EEEE, MMMM d, yyyy")}
                                 </TableCell>
                                 <TableCell className="text-right font-mono font-medium">
-                                  {record.amount}
+                                  {formatNumber(record.amount)}
                                 </TableCell>
                               </TableRow>
                             ))}
@@ -391,7 +400,7 @@ export default function Home() {
                               {format(new Date(record.date), "EEE, MMM d, yyyy")}
                             </div>
                             <div className="font-mono font-medium">
-                              {record.amount} mm
+                              {formatNumber(record.amount)} mm
                             </div>
                           </div>
                         ))}

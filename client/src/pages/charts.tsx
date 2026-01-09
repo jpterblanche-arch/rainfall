@@ -67,6 +67,14 @@ export default function Charts() {
     return chartData.reduce((sum, item) => sum + item.total, 0);
   }, [chartData]);
 
+  const formatNumber = (num: number | string) => {
+    const n = typeof num === "string" ? parseFloat(num) : num;
+    if (isNaN(n)) return num.toString();
+    const parts = n.toFixed(1).split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    return parts.join(".");
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 py-8 md:py-16">
@@ -88,7 +96,7 @@ export default function Charts() {
               <div className="flex flex-col items-end">
                 <span className="text-sm text-muted-foreground uppercase tracking-wider font-medium">Yearly Total</span>
                 <span className="text-3xl font-bold font-mono text-primary">
-                  {yearlyTotal.toFixed(1)}
+                  {formatNumber(yearlyTotal)}
                   <span className="text-lg font-normal text-muted-foreground ml-1">mm</span>
                 </span>
               </div>
@@ -153,7 +161,7 @@ export default function Charts() {
                             <div className="bg-popover border border-popover-border p-3 rounded-lg shadow-md">
                               <p className="text-sm font-medium mb-1">{payload[0].payload.fullName}</p>
                               <p className="text-2xl font-bold text-primary font-mono">
-                                {payload[0].value}
+                                {formatNumber(payload[0].value as number)}
                                 <span className="text-sm font-normal text-muted-foreground ml-1">mm</span>
                               </p>
                             </div>
@@ -170,7 +178,7 @@ export default function Charts() {
                         dataKey="total" 
                         position="top" 
                         offset={10} 
-                        formatter={(value: number) => value > 0 ? `${value}` : ""}
+                        formatter={(value: number) => value > 0 ? formatNumber(value) : ""}
                         style={{ fill: 'hsl(var(--foreground))', fontSize: 12, fontWeight: 500, fontFamily: 'var(--font-mono)' }}
                       />
                       {chartData.map((entry, index) => (
