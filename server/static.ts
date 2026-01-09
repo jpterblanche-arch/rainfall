@@ -3,12 +3,14 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// Fix for __dirname in ESM
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(__dirname, "public");
+  // Compute __dirname for ESM
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+
+  // Path to Vite build output
+  const distPath = path.resolve(__dirname, "../dist/public"); // relative to server folder
+
   if (!fs.existsSync(distPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
@@ -17,8 +19,9 @@ export function serveStatic(app: Express) {
 
   app.use(express.static(distPath));
 
-  // fall through to index.html if the file doesn't exist
+  // Fall through to index.html if no file matches
   app.use("*", (_req, res) => {
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }
+
