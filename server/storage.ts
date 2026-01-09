@@ -37,14 +37,27 @@ export class MemStorage implements IStorage {
         
         try {
           // Format is Monday 29Sept-25 -> parse 29Sept-25
-          const dateObj = parse(datePart, 'ddMMM-yy', new Date());
+          // We need to handle potential spaces or different separators
+          let dateObj;
+          if (datePart.match(/\d{1,2}[A-Za-z]{3}-\d{2}/)) {
+            dateObj = parse(datePart, 'ddMMM-yy', new Date());
+          } else {
+            // Fallback for other potential formats if needed
+            dateObj = new Date(datePart);
+          }
+          
           const amount = parseFloat(mmStr.replace(',', '.'));
           
           if (!isNaN(dateObj.getTime()) && mmStr) {
             const id = randomUUID();
+            const dateStrFormatted = dateObj.toISOString().split('T')[0];
+            // Log if it matches the missing date to verify
+            if (dateStrFormatted === '2025-09-29') {
+              console.log(`Successfully parsed missing record: ${datePart} -> ${dateStrFormatted} with ${amount}mm`);
+            }
             this.rainfallRecords.set(id, {
               id,
-              date: dateObj.toISOString().split('T')[0],
+              date: dateStrFormatted,
               amount: mmStr.trim().replace(',', '.')
             });
           }
