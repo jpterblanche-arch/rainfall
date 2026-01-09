@@ -1,6 +1,6 @@
 import { pool } from "./db";
 
-(async () => {
+async function initDb() {
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS rainfall (
@@ -10,12 +10,18 @@ import { pool } from "./db";
       );
     `);
     console.log("Rainfall table ready ✅");
-    process.exit(0);
   } catch (err) {
     console.error("Error initializing database:", err);
-    process.exit(1);
+    throw err; // throw so that the build/start process knows something went wrong
   }
-})();
-Add init-db.ts to create rainfall table
+}
+
+// only run if this file is executed directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  initDb().catch(() => process.exit(1));
+}
+
+export { initDb };
+
 
 
